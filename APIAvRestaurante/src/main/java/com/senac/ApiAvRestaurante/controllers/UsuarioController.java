@@ -2,6 +2,7 @@ package com.senac.ApiAvRestaurante.controllers;
 
 import com.senac.ApiAvRestaurante.model.Usuario;
 import com.senac.ApiAvRestaurante.repository.AvRestauranteRepository;
+import com.senac.ApiAvRestaurante.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,16 +11,19 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/restaurantes")
-@Tag(name = "Controlador de restaurantes", description = "Camda responsável por controlar ")
+@Tag(name = "Controlador de usuário", description = "Camda responsável por controlar usuário que vão avaliar os restaurantes ")
 public class UsuarioController {
 
+    // numa aplicação nunca irá ter um delete, somente um dado muda de estado
+
     @Autowired
-    private AvRestauranteRepository avRestauranteRepository;
+    private UsuarioRepository usuarioRepository;
 
     @GetMapping("/{id}")
+    @Operation(summary = "usuario", description = "Metodo responsável por consultar usuários por Id")
     public ResponseEntity<Usuario> consultaPorId(@PathVariable Long id) {
 
-        var usuario = avRestauranteRepository.findById(id).orElse(null);
+        var usuario = usuarioRepository.findById(id).orElse(null);
 
         if (usuario == null){
             return ResponseEntity.notFound().build();
@@ -33,7 +37,7 @@ public class UsuarioController {
     public ResponseEntity<?> consultarTodos(@RequestBody Usuario usuario){
 
         try {
-            var usuarioResponse = avRestauranteRepository.save(usuario);
+            var usuarioResponse = usuarioRepository.save(usuario);
 
             return ResponseEntity.ok(usuarioResponse);
         } catch (Exception e){
@@ -46,7 +50,7 @@ public class UsuarioController {
     public ResponseEntity<?> salvarUsuario(@RequestBody Usuario usuario){
 
         try {
-            var usuarioResponse = avRestauranteRepository.save(usuario);
+            var usuarioResponse = usuarioRepository.save(usuario);
 
             return ResponseEntity.ok(usuarioResponse);
         } catch (Exception e){
