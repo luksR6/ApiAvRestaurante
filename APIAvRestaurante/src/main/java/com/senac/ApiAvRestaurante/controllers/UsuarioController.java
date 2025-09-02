@@ -1,0 +1,56 @@
+package com.senac.ApiAvRestaurante.controllers;
+
+import com.senac.ApiAvRestaurante.model.Usuario;
+import com.senac.ApiAvRestaurante.repository.AvRestauranteRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/restaurantes")
+@Tag(name = "Controlador de restaurantes", description = "Camda responsável por controlar ")
+public class UsuarioController {
+
+    @Autowired
+    private AvRestauranteRepository avRestauranteRepository;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> consultaPorId(@PathVariable Long id) {
+
+        var usuario = avRestauranteRepository.findById(id).orElse(null);
+
+        if (usuario == null){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(usuario);
+    }
+
+    @GetMapping
+    @Operation(summary = "usuario", description = "Metodo responsável por consultar todos")
+    public ResponseEntity<?> consultarTodos(@RequestBody Usuario usuario){
+
+        try {
+            var usuarioResponse = avRestauranteRepository.save(usuario);
+
+            return ResponseEntity.ok(usuarioResponse);
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping
+    @Operation(summary = "Salvar Usuario", description = "Metodo responsável por salvar usuario")
+    public ResponseEntity<?> salvarUsuario(@RequestBody Usuario usuario){
+
+        try {
+            var usuarioResponse = avRestauranteRepository.save(usuario);
+
+            return ResponseEntity.ok(usuarioResponse);
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+}
