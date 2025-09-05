@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/restaurantes")
+@RequestMapping("/usuarios")
 @Tag(name = "Controlador de usuário", description = "Camda responsável por controlar usuário que vão avaliar os restaurantes ")
 public class UsuarioController {
 
@@ -34,15 +34,9 @@ public class UsuarioController {
 
     @GetMapping
     @Operation(summary = "usuario", description = "Metodo responsável por consultar todos")
-    public ResponseEntity<?> consultarTodos(@RequestBody Usuario usuario){
+    public ResponseEntity<?> consultarTodos(){
 
-        try {
-            var usuarioResponse = usuarioRepository.save(usuario);
-
-            return ResponseEntity.ok(usuarioResponse);
-        } catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(usuarioRepository.findAll());
     }
 
     @PostMapping

@@ -2,6 +2,7 @@ package com.senac.ApiAvRestaurante.repository;
 
 import com.senac.ApiAvRestaurante.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -13,5 +14,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     boolean existsUsuarioByEmailContainingAndSenha(String email, String senha); // existe um usuario que tem esse email e a senha é igual
 
-
+    Optional<Usuario> findByEmail(String email);
 }

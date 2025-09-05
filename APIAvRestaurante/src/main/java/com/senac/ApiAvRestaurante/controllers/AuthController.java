@@ -33,7 +33,7 @@ public class AuthController {
         if (!usuarioService.validarSenha(request)){
             return ResponseEntity.badRequest().body("Usuario ou senha invalido");
         }
-        var token = tokenService.gerarToken(request.email(), request.senha());
+        var token = tokenService.gerarToken(request); // passou o objeto inteiro
 
         return ResponseEntity.ok(token);
     }
