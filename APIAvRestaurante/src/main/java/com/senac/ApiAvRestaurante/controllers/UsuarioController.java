@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/usuarios")
-@Tag(name = "Controlador de usuário", description = "Camda responsável por controlar usuário que vão avaliar os restaurantes ")
+@Tag(name = "Controlador de usuário", description = "Camada responsável por controlar usuário que vão avaliar os restaurantes")
 public class UsuarioController {
 
     // numa aplicação nunca irá ter um delete, somente um dado muda de estado
@@ -33,7 +33,7 @@ public class UsuarioController {
     }
 
     @GetMapping
-    @Operation(summary = "usuario", description = "Metodo responsável por consultar todos")
+    @Operation(summary = "usuario", description = "Metodo responsável por consultar todos os usuários")
     public ResponseEntity<?> consultarTodos(){
 
         return ResponseEntity.ok(usuarioRepository.findAll());

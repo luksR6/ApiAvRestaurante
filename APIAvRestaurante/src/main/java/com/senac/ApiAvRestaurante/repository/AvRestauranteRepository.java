@@ -8,5 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface AvRestauranteRepository{
+public interface AvRestauranteRepository extends JpaRepository<Avaliacao, Long>{
+
+    Optional<Usuario> findByEmailAndNome(String email, String nome);
 }
