@@ -9,6 +9,4 @@ import java.util.Optional;
 
 @Repository
 public interface AvRestauranteRepository extends JpaRepository<Avaliacao, Long>{
-
-    Optional<Usuario> findByEmailAndNome(String email, String nome);
 }

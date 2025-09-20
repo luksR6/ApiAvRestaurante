@@ -1,5 +1,6 @@
 package com.senac.ApiAvRestaurante.controllers;
 
+import com.senac.ApiAvRestaurante.dto.AvaliacaoRequestDto;
 import com.senac.ApiAvRestaurante.model.Avaliacao;
 import com.senac.ApiAvRestaurante.repository.AvRestauranteRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,39 +10,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/avalicao")
+@RequestMapping("/avaliacao")
 @Tag(name = "Controlador de avaliação", description = "Camada responsável por controlar as avaliações dos restaurantes")
 public class AvRestauranteController {
 
     @Autowired
     private AvRestauranteRepository avRestauranteRepository;
 
-    @GetMapping("/id")
-    @Operation(summary = "avaliacao", description = "Metodo responsável para consultar avaliação por Id")
+    @GetMapping("/{id}")
+    @Operation(summary = "Consultar avaliação por Id", description = "Metodo responsável para consultar avaliação por Id")
     public ResponseEntity<Avaliacao> consultaAvPorId(@PathVariable Long id){
 
-        var avalicao = avRestauranteRepository.findById(id).orElse(null);
+        var avaliacao = avRestauranteRepository.findById(id).orElse(null);
 
-        if (avalicao == null{
+        if (avaliacao == null){
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(avalicao);
+        return ResponseEntity.ok(avaliacao);
     }
 
     @GetMapping
-    @Operation(summary = "avaliacao", description = "Metodo responsável por consultar todas as avaliações")
+    @Operation(summary = "Consultar as avaliações", description = "Metodo responsável por consultar todas as avaliações")
     public ResponseEntity<?> consultarTodasAv(){
 
         return ResponseEntity.ok(avRestauranteRepository.findAll());
     }
 
     @PostMapping
-    @Operation(summary = "Salvar avaliação", description = "Metodo responsável por salvar usuario")
-    public ResponseEntity<?> salvarAvalicao(@RequestBody Avaliacao avaliacao){
+    @Operation(summary = "Cadastrar avaliação", description = "Metodo responsável por cadastrar avaliações")
+    public ResponseEntity<?> cadastrarAvalaicao(@RequestBody AvaliacaoRequestDto requestDto){
 
         try {
-            var avaliacaoResponse = avRestauranteRepository.save(avaliacao);
+            var avaliacaoResponse = requestDto.transformarEmEntidade();
+            avRestauranteRepository.save(avaliacaoResponse);
 
             return ResponseEntity.ok(avaliacaoResponse);
         } catch (Exception e){
@@ -49,5 +51,34 @@ public class AvRestauranteController {
         }
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar avaliação", description = "Metodo responsável por atualizar avaliações")
+    public ResponseEntity<?> atualizarAvaliacao(@RequestBody AvaliacaoRequestDto avalicaoDto, Long id){
+        if (!avRestauranteRepository.existsById(id)){
+            throw new RuntimeException("Avaliação não encontrada");
+        }
+
+        try {
+            return ResponseEntity.ok(null);
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deletar avaliação", description = "Metodo responsável por deletar avaliações")
+    public ResponseEntity<Void> excluirAvaliacao(@PathVariable Long id){
+        if (!avRestauranteRepository.existsById(id)){
+            throw new RuntimeException("Avaliação não encontrada");
+        }
+
+        try {
+            avRestauranteRepository.deleteById(id);
+            return ResponseEntity.ok(null);
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
 }

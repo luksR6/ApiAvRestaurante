@@ -1,7 +1,6 @@
 package com.senac.ApiAvRestaurante.controllers;
 
 import com.senac.ApiAvRestaurante.model.Usuario;
-import com.senac.ApiAvRestaurante.repository.AvRestauranteRepository;
 import com.senac.ApiAvRestaurante.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +19,7 @@ public class UsuarioController {
     private UsuarioRepository usuarioRepository;
 
     @GetMapping("/{id}")
-    @Operation(summary = "usuario", description = "Metodo responsável por consultar usuários por Id")
+    @Operation(summary = "Consultar Usuários por Id", description = "Metodo responsável por consultar usuários por Id")
     public ResponseEntity<Usuario> consultaPorId(@PathVariable Long id) {
 
         var usuario = usuarioRepository.findById(id).orElse(null);
@@ -33,7 +32,7 @@ public class UsuarioController {
     }
 
     @GetMapping
-    @Operation(summary = "usuario", description = "Metodo responsável por consultar todos os usuários")
+    @Operation(summary = "Consultar Usuários", description = "Metodo responsável por consultar todos os usuários")
     public ResponseEntity<?> consultarTodos(){
 
         return ResponseEntity.ok(usuarioRepository.findAll());
@@ -51,4 +50,5 @@ public class UsuarioController {
             return ResponseEntity.badRequest().build();
         }
     }
+
 }

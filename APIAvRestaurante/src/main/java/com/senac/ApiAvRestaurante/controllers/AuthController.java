@@ -1,6 +1,7 @@
 package com.senac.ApiAvRestaurante.controllers;
 
 import com.senac.ApiAvRestaurante.dto.LoginRequestDto;
+import com.senac.ApiAvRestaurante.dto.LoginResponseDto;
 import com.senac.ApiAvRestaurante.model.Usuario;
 import com.senac.ApiAvRestaurante.services.TokenService;
 import com.senac.ApiAvRestaurante.services.UsuarioService;
@@ -35,6 +36,6 @@ public class AuthController {
         }
         var token = tokenService.gerarToken(request); // passou o objeto inteiro
 
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(new LoginResponseDto(token));
     }
 }
