@@ -3,10 +3,12 @@ package com.senac.ApiAvRestaurante.presentation;
 import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteRequestDto;
 import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteResponseDto;
 import com.senac.ApiAvRestaurante.application.services.RestauranteService;
+import com.senac.ApiAvRestaurante.domain.entities.Avaliacao;
 import com.senac.ApiAvRestaurante.domain.entities.Restaurante;
 import com.senac.ApiAvRestaurante.domain.repository.RestauranteRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -63,18 +65,24 @@ public class RestauranteController {
         }
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar avaliação", description = "Metódo responsável por atualizar os restaurantes")
+    public ResponseEntity<RestauranteResponseDto> atualizarRestaurantes(
+            @RequestBody @Valid RestauranteRequestDto restauranteRequestDto,
+            @PathVariable Long id) {
+
+        RestauranteResponseDto restauranteResponseDto = restauranteService.atualizarRestaurante(id, restauranteRequestDto);
+        return ResponseEntity.ok(restauranteResponseDto);
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar restaurante", description = "Metodo responsável por deletar restaurantes")
     public ResponseEntity<Void> deletarRestaurante(@PathVariable Long id) {
 
-        if (!restauranteRepository.existsById(id)){
-            throw new RuntimeException("Restaurante não encontrado");
-        }
-
         try {
-            restauranteRepository.deleteById(id);
+            restauranteService.deletarRestaurante(id);
             return ResponseEntity.ok(null);
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }

@@ -5,6 +5,7 @@ import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteRespons
 import com.senac.ApiAvRestaurante.domain.entities.Restaurante;
 import com.senac.ApiAvRestaurante.domain.repository.RestauranteRepository;
 import com.senac.ApiAvRestaurante.domain.repository.UsuarioRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,5 +38,31 @@ public class RestauranteService {
        Restaurante restauranteSalvo = restauranteRepository.save(restaurante);
 
        return new RestauranteResponseDto(restauranteSalvo);
+   }
+
+    public RestauranteResponseDto atualizarRestaurante(Long id, RestauranteRequestDto restauranteRequestDto) {
+
+        Restaurante restaurante = restauranteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurante com ID " + id + " não encontrada"));
+
+        restaurante.setNome(restauranteRequestDto.nome());
+
+        Restaurante restauranteAtualizado = restauranteRepository.save(restaurante);
+
+        return new RestauranteResponseDto(restauranteAtualizado);
+    }
+
+
+   public void deletarRestaurante(Long id){
+
+       if (!restauranteRepository.existsById(id)) {
+           throw new RuntimeException("Restaurante não encontrado");
+       }
+
+       try {
+           restauranteRepository.deleteById(id);
+       } catch (Exception e) {
+           throw new RuntimeException("Não foi possível deletar");
+       }
    }
 }

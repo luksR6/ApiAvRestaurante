@@ -1,6 +1,7 @@
 package com.senac.ApiAvRestaurante.domain.entities;
 
 import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteRequestDto;
+import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteResponseDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
