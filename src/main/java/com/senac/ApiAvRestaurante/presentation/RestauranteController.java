@@ -34,13 +34,12 @@ public class RestauranteController {
     @Operation(summary = "Consultar Restaurantes por Id", description = "Metodo responsável por consultar restaurantes cadastrados por ID")
     public ResponseEntity<RestauranteResponseDto> consultarRestaurantePorId(@PathVariable Long id) {
 
-        var restaurante = restauranteService.consultarPorId(id);
-
-        if (restaurante == null){
-            return ResponseEntity.notFound().build();
+        try {
+            RestauranteResponseDto restauranteResponseDto = restauranteService.consultarPorId(id);
+            return ResponseEntity.ok(restauranteResponseDto);
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
         }
-
-        return ResponseEntity.ok(restaurante);
     }
 
     @GetMapping
@@ -71,8 +70,16 @@ public class RestauranteController {
             @RequestBody @Valid RestauranteRequestDto restauranteRequestDto,
             @PathVariable Long id) {
 
-        RestauranteResponseDto restauranteResponseDto = restauranteService.atualizarRestaurante(id, restauranteRequestDto);
-        return ResponseEntity.ok(restauranteResponseDto);
+
+        try {
+            RestauranteResponseDto restauranteResponseDto = restauranteService.atualizarRestaurante(id, restauranteRequestDto);
+
+            return ResponseEntity.ok(restauranteResponseDto);
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+
+
     }
 
     @DeleteMapping("/{id}")
