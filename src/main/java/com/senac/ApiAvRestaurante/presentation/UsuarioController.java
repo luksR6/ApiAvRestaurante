@@ -77,4 +77,15 @@ public class UsuarioController {
         }
     }
 
+    @PostMapping("/admin-normal")
+    @Operation(summary = "Criar Admin de Restaurante", description = "Metodo responsável por criar o admin de restaurante")
+    public ResponseEntity<UsuarioResponseDto> criarAdminNormal(@RequestBody UsuarioRequestDto adminRequest) {
+        try {
+            var usuarioResponse = usuarioService.criarAdminNormal(adminRequest);
+
+            return ResponseEntity.ok(usuarioResponse);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

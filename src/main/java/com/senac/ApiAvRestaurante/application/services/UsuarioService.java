@@ -61,6 +61,25 @@ public class UsuarioService {
 
     }
 
+    @Transactional
+    public UsuarioResponseDto criarAdminNormal(UsuarioRequestDto adminRequest) {
+
+        Usuario novoAdmin = new Usuario();
+        novoAdmin.setCpf(adminRequest.cpf());
+        novoAdmin.setNome(adminRequest.nome());
+        novoAdmin.setEmail(adminRequest.email());
+
+        novoAdmin.setSenha(adminRequest.senha());
+
+        novoAdmin.setRole("ROLE_ADMIN_NORMAL");
+
+
+        novoAdmin.setDataCadastro(LocalDateTime.now());
+
+        usuarioRepository.save(novoAdmin);
+        return novoAdmin.toResponseDto();
+    }
+
     public List<UsuarioResponseDto> consultarPaginadoFiltrado(Long take, Long page, String filtro) {
 
         return usuarioRepository.findAll()

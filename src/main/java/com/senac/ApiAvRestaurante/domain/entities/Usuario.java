@@ -28,7 +28,7 @@ public class Usuario implements UserDetails {
         this.setSenha(usuarioRequest.senha());
         this.setRole(usuarioRequest.role());
 
-        if (this.getDataCadastro() != null){
+        if (this.getDataCadastro() == null){
             this.setDataCadastro(LocalDateTime.now()); //a data nao muda mais
         }
     }
@@ -50,10 +50,21 @@ public class Usuario implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
-        if ("ROLE_ADMIN".equals(this.role)){
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
-                    new  SimpleGrantedAuthority("ROLE_USER"));
-        } else {
+        if ("ROLE_ADMIN_GERAL".equals(this.role)) { // (Use seu nome "GERAL")
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMIN_GERAL"),
+                    new SimpleGrantedAuthority("ROLE_ADMIN_NORMAL"),
+                    new SimpleGrantedAuthority("ROLE_USER")
+            );
+        }
+        else if ("ROLE_ADMIN_NORMAL".equals(this.role)) { // (Use seu nome "NORMAL")
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMIN_NORMAL"),
+                    new SimpleGrantedAuthority("ROLE_USER")
+            );
+        }
+        else {
+            // O padrão (ROLE_USER)
             return List.of(new SimpleGrantedAuthority("ROLE_USER"));
         }
     }

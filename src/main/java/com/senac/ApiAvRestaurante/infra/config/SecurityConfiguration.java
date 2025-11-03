@@ -32,12 +32,16 @@ public class SecurityConfiguration {
                                 .requestMatchers("/swagger-resources/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/usuarios").hasRole("ADMIN") // TUDO QUE NAO FOR ESSA ROTA VAI SER USUARIO
-                                //.requestMatchers("/**").permitAll() // acesso livre as rotas
+                                .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/usuarios/admin-normal").hasRole("ADMIN_GERAL")
+                                .requestMatchers(HttpMethod.POST, "/restaurantes").hasRole("ADMIN_NORMAL")
+                                .requestMatchers(HttpMethod.PUT, "/restaurantes/**").hasRole("ADMIN_NORMAL")
+                                .requestMatchers(HttpMethod.DELETE, "/restaurantes/**").hasRole("ADMIN_NORMAL")
+                                .requestMatchers("/avaliacoes/**").hasRole("USER")
+
                                 .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }
-
