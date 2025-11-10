@@ -28,20 +28,26 @@ public class AvRestauranteController {
     @Autowired
     private AvRestauranteService avRestauranteService;
 
-//    @GetMapping("/{id}")
-//    @Operation(summary = "Consultar avaliação por Id", description = "Metodo responsável para consultar avaliação por Id")
-//    public ResponseEntity<Avaliacao> consultaAvPorId(@PathVariable Long id){
-//
-//        Optional<Avaliacao> optionalAvaliacao = avRestauranteRepository.findById(id);
-//
-//        if (optionalAvaliacao == null){
-//            return ResponseEntity.notFound().build();
-//        }
-//
-//        Avaliacao avaliacao = optionalAvaliacao.get();
-//
-//        return ResponseEntity.ok(avaliacao);
-//    }
+    @GetMapping("/{id}") // 1. O caminho agora espera um ID
+    @Operation(summary = "Consultar avaliações por Id", description = "Metodo responsável por consultar as avaliações de um restaurante específico")
+    public ResponseEntity<AvaliacaoResponseDto> consultarAvaliacaoPorId(@PathVariable Long id) {
+
+        try {
+            AvaliacaoResponseDto avaliacaoResponseDto = avRestauranteService.consultarAvaliacaoPorId(id);
+            return ResponseEntity.ok(avaliacaoResponseDto);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/restaurante/{restauranteId}")
+    @Operation(summary = "Consultar avaliações por ID do Restaurante")
+    public ResponseEntity<List<AvaliacaoResponseDto>> consultarPorRestauranteId(@PathVariable Long restauranteId){
+
+        List<AvaliacaoResponseDto> avaliacoes = avRestauranteService.consultarPorRestaurante(restauranteId);
+
+        return ResponseEntity.ok(avaliacoes);
+    }
 
     @GetMapping
     @Operation(summary = "Consultar as avaliações", description = "Metodo responsável por consultar todas as avaliações")

@@ -28,6 +28,11 @@ public class AvRestauranteService {
         return avRestauranteRepository.findAll().stream().map(Avaliacao::toResponseDto).collect(Collectors.toList());
     }
 
+    public AvaliacaoResponseDto consultarAvaliacaoPorId(Long id){
+
+        return avRestauranteRepository.findById(id).map(Avaliacao::toResponseDto).orElse(null);
+    }
+
     @Transactional
     public AvaliacaoResponseDto salvarAvaliacao(AvaliacaoRequestDto dto) {
         Restaurante restaurante = restauranteRepository.findById(dto.restauranteId())
@@ -39,20 +44,16 @@ public class AvRestauranteService {
         novaAvaliacao.setDataAvaliacao(LocalDateTime.now());
         novaAvaliacao.setRestaurante(restaurante);
 
-        // 1. Salva a nova avaliação (como você já fazia)
         avRestauranteRepository.save(novaAvaliacao);
 
-
-        // 2. Calcula a nova média
         Double novaMedia = avRestauranteRepository.calcularMediaPorRestauranteId(restaurante.getId());
+        Double mediaFinal = (novaMedia != null ? novaMedia : 0.0);
 
-        // 3. Atualiza o objeto restaurante em memória
-        //    (Adicionei um 'null check' para segurança, caso a média retorne nula)
-        restaurante.setMediaNota(novaMedia != null ? novaMedia : 0.0);
+        restaurante.setMediaNota(mediaFinal);
 
-        // 4. --- ESTA É A LINHA QUE FALTAVA ---
-        //    Salve o restaurante com a médiaNota atualizada!
-        restauranteRepository.save(restaurante);
+        Restaurante restauranteAtualizado = restauranteRepository.save(restaurante);
+        novaAvaliacao.setRestaurante(restauranteAtualizado);
+
 
         return novaAvaliacao.toResponseDto();
     }
@@ -97,6 +98,15 @@ public class AvRestauranteService {
                 })
                 .skip(page * take)
                 .limit(take)
+                .map(Avaliacao::toResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<AvaliacaoResponseDto> consultarPorRestaurante(Long restauranteId) {
+
+        List<Avaliacao> avaliacoes = avRestauranteRepository.findByRestauranteId(restauranteId);
+
+        return avaliacoes.stream()
                 .map(Avaliacao::toResponseDto)
                 .collect(Collectors.toList());
     }

@@ -11,11 +11,15 @@ import com.senac.ApiAvRestaurante.domain.repository.TokenRepository;
 import com.senac.ApiAvRestaurante.domain.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TokenService {
@@ -38,12 +42,23 @@ public class TokenService {
 
         var usuario = usuarioRepository.findByEmail(loginRequestDto.email()).orElse(null);
 
+        if (usuario == null) {
+            throw new RuntimeException("Usuário não encontrado");
+        }
+
         Algorithm algorithm = Algorithm.HMAC256(secret);
+
+        Collection<? extends GrantedAuthority> authorities = usuario.getAuthorities();
+
+        List<String> roles = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
 
         String token = JWT.create()
                 .withIssuer(emissor)
                 .withSubject(usuario.getEmail())
                 .withExpiresAt(this.gerarDataExpiracao())
+                .withClaim("roles", roles)
                 .sign(algorithm);
 
         tokenRepository.save(new Token(null, token, usuario));
