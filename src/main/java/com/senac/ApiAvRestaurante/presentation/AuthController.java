@@ -1,9 +1,6 @@
 package com.senac.ApiAvRestaurante.presentation;
 
-import com.senac.ApiAvRestaurante.application.dto.login.EsqueciMinhaSenhaDto;
-import com.senac.ApiAvRestaurante.application.dto.login.LoginRequestDto;
-import com.senac.ApiAvRestaurante.application.dto.login.LoginResponseDto;
-import com.senac.ApiAvRestaurante.application.dto.login.RegistrarNovaSenhaDto;
+import com.senac.ApiAvRestaurante.application.dto.login.*;
 import com.senac.ApiAvRestaurante.application.dto.usuario.UsuarioPrincipalDto;
 import com.senac.ApiAvRestaurante.application.services.TokenService;
 import com.senac.ApiAvRestaurante.application.services.UsuarioService;
@@ -27,14 +24,14 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "login", description = "Metodo responsável em efutar o login do usuario")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto request){
+    public ResponseEntity<LoginResponseCompletoDto> login(@RequestBody LoginRequestDto request){
 
-        if (!usuarioService.validarSenha(request)){
-            return ResponseEntity.badRequest().body("Usuario ou senha invalido");
+        try {
+            LoginResponseCompletoDto resposta = usuarioService.autenticarLogin(request);
+            return ResponseEntity.ok(resposta);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
-        var token = tokenService.gerarToken(request); // passou o objeto inteiro
-
-        return ResponseEntity.ok(new LoginResponseDto(token));
     }
 
 
@@ -44,11 +41,8 @@ public class AuthController {
 
         try {
             usuarioService.recuperarSenhaEnvio(usuarioLogado);
-
             return ResponseEntity.ok().build();
-
         }catch (Exception e){
-
             return ResponseEntity.notFound().build();
         }
     }

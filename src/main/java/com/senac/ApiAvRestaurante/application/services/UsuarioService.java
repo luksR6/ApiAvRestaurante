@@ -2,6 +2,7 @@ package com.senac.ApiAvRestaurante.application.services;
 
 import com.senac.ApiAvRestaurante.application.dto.login.EsqueciMinhaSenhaDto;
 import com.senac.ApiAvRestaurante.application.dto.login.LoginRequestDto;
+import com.senac.ApiAvRestaurante.application.dto.login.LoginResponseCompletoDto;
 import com.senac.ApiAvRestaurante.application.dto.login.RegistrarNovaSenhaDto;
 import com.senac.ApiAvRestaurante.application.dto.usuario.UsuarioPrincipalDto;
 import com.senac.ApiAvRestaurante.application.dto.usuario.UsuarioRequestDto;
@@ -11,6 +12,7 @@ import com.senac.ApiAvRestaurante.domain.interfaces.IEnvioEmail;
 import com.senac.ApiAvRestaurante.domain.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -27,10 +29,33 @@ public class UsuarioService {
 
     @Autowired
     private IEnvioEmail iEnvioEmail;
+    @Autowired
+    private TokenService tokenService;
 
     public boolean validarSenha(LoginRequestDto login){
 
         return usuarioRepository.existsUsuarioByEmailContainingAndSenha(login.email(), login.senha());
+    }
+
+    public LoginResponseCompletoDto autenticarLogin(LoginRequestDto request) {
+
+        if (!this.validarSenha(request)) {
+            throw new RuntimeException("Usuario ou senha invalido");
+        }
+
+        String token = tokenService.gerarToken(request);
+
+        var usuario = usuarioRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        List<String> roles = usuario.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        String tipoPerfil = roles.contains("ROLE_ADMIN_NORMAL") ? "admin" : "usuario";
+
+        UsuarioResponseDto usuarioDto = usuario.toResponseDto();
+
+        return new LoginResponseCompletoDto(token, usuarioDto, tipoPerfil);
     }
 
     public UsuarioResponseDto consultarPorId(Long id){
