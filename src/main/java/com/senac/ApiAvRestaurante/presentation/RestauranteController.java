@@ -44,12 +44,15 @@ public class RestauranteController {
 
     @GetMapping
     @Operation(summary = "Consultar Todos Restaurantes", description = "Metodo responsável por consultar todos os restaurantes cadastrados")
-    public ResponseEntity<List<RestauranteResponseDto>> consultarTodos(){
+    public ResponseEntity<List<RestauranteResponseDto>> consultarTodos(@RequestParam(required = false) String nome){
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        return ResponseEntity.ok(restauranteService.consultarTodos());
+        var resultado = restauranteService.listarPorNome(nome);
+
+        return ResponseEntity.ok(resultado);
     }
+
 
     @PostMapping
     @Operation(summary = "Salvar Restaurante", description = "Metodo responsável por cadastrar e salvar restaurantes")

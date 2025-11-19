@@ -25,6 +25,19 @@ public class RestauranteService {
         return restauranteRepository.findById(id).map(RestauranteResponseDto::new).orElse(null);
     }
 
+    public List<RestauranteResponseDto> listarPorNome(String nome) {
+
+        List<Restaurante> lista;
+
+        if (nome != null && !nome.isEmpty()) {
+            lista = restauranteRepository.findByNomeContainingIgnoreCase(nome);
+        } else {
+            lista = restauranteRepository.findAll();
+        }
+
+        return lista.stream().map(RestauranteResponseDto::new).collect(Collectors.toList());
+    }
+
     public List<RestauranteResponseDto> consultarTodos(){
         return restauranteRepository.findAll().stream().map(RestauranteResponseDto::new).collect(Collectors.toList());
     }
