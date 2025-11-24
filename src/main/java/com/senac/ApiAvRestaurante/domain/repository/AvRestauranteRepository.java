@@ -16,4 +16,6 @@
         Double calcularMediaPorRestauranteId(@Param("restauranteId") Long restauranteId);
 
         List<Avaliacao> findByRestauranteId(Long restauranteId);
+
+        List<Avaliacao> findByUsuarioId(Long usuarioId);
     }

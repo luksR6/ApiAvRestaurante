@@ -3,6 +3,7 @@ package com.senac.ApiAvRestaurante.application.services;
 import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteRequestDto;
 import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteResponseDto;
 import com.senac.ApiAvRestaurante.domain.entities.Restaurante;
+import com.senac.ApiAvRestaurante.domain.repository.AvRestauranteRepository;
 import com.senac.ApiAvRestaurante.domain.repository.RestauranteRepository;
 import com.senac.ApiAvRestaurante.domain.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,6 +21,9 @@ public class RestauranteService {
     @Autowired
     private RestauranteRepository restauranteRepository;
 
+    @Autowired
+    private AvRestauranteRepository avRestauranteRepository;
+
     public RestauranteResponseDto consultarPorId(Long id) {
 
         return restauranteRepository.findById(id).map(RestauranteResponseDto::new).orElse(null);
@@ -35,7 +39,20 @@ public class RestauranteService {
             lista = restauranteRepository.findAll();
         }
 
-        return lista.stream().map(RestauranteResponseDto::new).collect(Collectors.toList());
+        return lista.stream().map(restaurante -> {
+
+            Double media = avRestauranteRepository.calcularMediaPorRestauranteId(restaurante.getId());
+
+            if (media == null) media = 0.0;
+
+
+            return new RestauranteResponseDto(
+                    restaurante.getId(),
+                    restaurante.getNome(),
+                    media
+            );
+
+        }).collect(Collectors.toList());
     }
 
     public List<RestauranteResponseDto> consultarTodos(){

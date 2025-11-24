@@ -2,12 +2,16 @@ package com.senac.ApiAvRestaurante.application.services;
 
 import com.senac.ApiAvRestaurante.application.dto.avaliacao.AvaliacaoRequestDto;
 import com.senac.ApiAvRestaurante.application.dto.avaliacao.AvaliacaoResponseDto;
+import com.senac.ApiAvRestaurante.application.dto.usuario.UsuarioPrincipalDto;
 import com.senac.ApiAvRestaurante.domain.entities.Avaliacao;
 import com.senac.ApiAvRestaurante.domain.entities.Restaurante;
+import com.senac.ApiAvRestaurante.domain.entities.Usuario;
 import com.senac.ApiAvRestaurante.domain.repository.AvRestauranteRepository;
 import com.senac.ApiAvRestaurante.domain.repository.RestauranteRepository;
+import com.senac.ApiAvRestaurante.domain.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,6 +28,9 @@ public class AvRestauranteService {
     @Autowired
     private RestauranteRepository restauranteRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     public List<AvaliacaoResponseDto> consultarTodasAvSemFiltro(){
         return avRestauranteRepository.findAll().stream().map(Avaliacao::toResponseDto).collect(Collectors.toList());
     }
@@ -35,25 +42,35 @@ public class AvRestauranteService {
 
     @Transactional
     public AvaliacaoResponseDto salvarAvaliacao(AvaliacaoRequestDto dto) {
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var principal = auth.getPrincipal();
+
+        if (!(principal instanceof UsuarioPrincipalDto usuarioDto)) {
+            throw new RuntimeException("Usuário não autenticado!");
+        }
+
+        String emailUsuario = usuarioDto.email();
+
         Restaurante restaurante = restauranteRepository.findById(dto.restauranteId())
-                .orElseThrow(() -> new RuntimeException("Restaurante com ID " + dto.restauranteId() + " não encontrado!"));
+                .orElseThrow(() -> new RuntimeException("Restaurante não encontrado"));
+
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado no banco! Email=" + emailUsuario));
 
         Avaliacao novaAvaliacao = new Avaliacao();
         novaAvaliacao.setNota(dto.nota());
         novaAvaliacao.setComentario(dto.comentario());
         novaAvaliacao.setDataAvaliacao(LocalDateTime.now());
         novaAvaliacao.setRestaurante(restaurante);
+        novaAvaliacao.setUsuario(usuario);
 
         avRestauranteRepository.save(novaAvaliacao);
 
         Double novaMedia = avRestauranteRepository.calcularMediaPorRestauranteId(restaurante.getId());
-        Double mediaFinal = (novaMedia != null ? novaMedia : 0.0);
+        restaurante.setMediaNota(novaMedia == null ? 0.0 : novaMedia);
 
-        restaurante.setMediaNota(mediaFinal);
-
-        Restaurante restauranteAtualizado = restauranteRepository.save(restaurante);
-        novaAvaliacao.setRestaurante(restauranteAtualizado);
-
+        restauranteRepository.save(restaurante);
 
         return novaAvaliacao.toResponseDto();
     }
@@ -109,6 +126,35 @@ public class AvRestauranteService {
         return avaliacoes.stream()
                 .map(Avaliacao::toResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    public void deletarAvaliacao(Long id) {
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var principal = auth.getPrincipal();
+
+        if (!(principal instanceof UsuarioPrincipalDto usuarioDto)) {
+            throw new RuntimeException("Usuário não autenticado!");
+        }
+
+        String emailUsuario = usuarioDto.email();
+
+        Avaliacao avaliacao = avRestauranteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Avaliação não encontrada"));
+
+        if (avaliacao.getUsuario() == null ||
+                !avaliacao.getUsuario().getEmail().equalsIgnoreCase(emailUsuario)) {
+            throw new RuntimeException("Você não tem permissão para excluir esta avaliação.");
+        }
+
+        avRestauranteRepository.delete(avaliacao);
+    }
+
+    public List<AvaliacaoResponseDto> listarMinhasAvaliacoes(Long idUsuario) {
+        return avRestauranteRepository.findByUsuarioId(idUsuario)
+                .stream()
+                .map(Avaliacao::toResponseDto)
+                .toList();
     }
 }
 

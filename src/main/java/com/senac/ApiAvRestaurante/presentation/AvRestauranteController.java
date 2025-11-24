@@ -2,20 +2,20 @@ package com.senac.ApiAvRestaurante.presentation;
 
 import com.senac.ApiAvRestaurante.application.dto.avaliacao.AvaliacaoRequestDto;
 import com.senac.ApiAvRestaurante.application.dto.avaliacao.AvaliacaoResponseDto;
+import com.senac.ApiAvRestaurante.application.dto.usuario.UsuarioPrincipalDto;
 import com.senac.ApiAvRestaurante.application.services.AvRestauranteService;
-import com.senac.ApiAvRestaurante.domain.entities.Avaliacao;
-import com.senac.ApiAvRestaurante.domain.repository.AvRestauranteRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/avaliacao")
@@ -67,14 +67,12 @@ public class AvRestauranteController {
 
     @PostMapping
     @Operation(summary = "Cadastrar avaliação", description = "Metodo responsável por cadastrar avaliações")
-    public ResponseEntity<AvaliacaoResponseDto> cadastrarAvalaicao(@Valid @RequestBody AvaliacaoRequestDto avaliacaoDto){
-
+    public ResponseEntity<?> cadastrarAvaliacao(@Valid @RequestBody AvaliacaoRequestDto avaliacaoDto) {
         try {
-            var avaliacaoResponse = avRestauranteService.salvarAvaliacao(avaliacaoDto);
-
-            return ResponseEntity.ok(avaliacaoResponse);
-        } catch (Exception e){
-            return ResponseEntity.badRequest().build();
+            var response = avRestauranteService.salvarAvaliacao(avaliacaoDto);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -88,19 +86,30 @@ public class AvRestauranteController {
         return ResponseEntity.ok(avaliacaoResponseDto);
     }
 
-//    @DeleteMapping("/{id}")
-//    @Operation(summary = "Deletar avaliação", description = "Metodo responsável por deletar avaliações")
-//    public ResponseEntity<Void> excluirAvaliacao(@PathVariable Long id){
-//        if (!avRestauranteRepository.existsById(id)){
-//            throw new RuntimeException("Avaliação não encontrada");
-//        }
-//
-//        try {
-//            avRestauranteRepository.deleteById(id);
-//            return ResponseEntity.ok(null);
-//        } catch (Exception e){
-//            return ResponseEntity.badRequest().build();
-//        }
-//    }
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deletar avaliação", description = "Deleta uma avaliação se pertencer ao usuário logado")
+    public ResponseEntity<Void> deletarAvaliacao(@PathVariable Long id) {
+        try {
+            avRestauranteService.deletarAvaliacao(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Minhas Avaliações", description = "Retorna apenas as avaliações do usuário logado")
+    public ResponseEntity<List<AvaliacaoResponseDto>> consultarMinhasAvaliacoes() {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UsuarioPrincipalDto principal = (UsuarioPrincipalDto) auth.getPrincipal();
+
+        Long idUsuario = principal.id();
+
+        List<AvaliacaoResponseDto> lista = avRestauranteService.listarMinhasAvaliacoes(idUsuario);
+
+        return ResponseEntity.ok(lista);
+    }
+
 
 }

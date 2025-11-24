@@ -2,6 +2,7 @@
 package com.senac.ApiAvRestaurante.domain.entities;
 
 import com.senac.ApiAvRestaurante.application.dto.avaliacao.AvaliacaoResponseDto;
+import com.senac.ApiAvRestaurante.application.dto.usuario.UsuarioResponseDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,19 +23,29 @@ public class Avaliacao {
     private String comentario;
     private LocalDateTime dataAvaliacao;
 
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurante_id", nullable = false)
     private Restaurante restaurante;
 
     public AvaliacaoResponseDto toResponseDto() {
+
+        UsuarioResponseDto usuarioDto = null;
+
+        if (this.usuario != null) {
+            usuarioDto = this.usuario.toResponseDto();
+        }
+
         return new AvaliacaoResponseDto(
                 this.id,
                 this.nota,
                 this.comentario,
-                // Pega o nome do objeto Restaurante que está ligado a esta avaliação
                 this.restaurante.getNome(),
-                // Pega a média de notas do objeto Restaurante
-                this.restaurante.getMediaNota()
+                this.restaurante.getMediaNota(),
+                usuarioDto
         );
     }
 }
