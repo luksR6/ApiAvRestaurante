@@ -128,6 +128,7 @@ public class AvRestauranteService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void deletarAvaliacao(Long id) {
 
         var auth = SecurityContextHolder.getContext().getAuthentication();
@@ -139,15 +140,28 @@ public class AvRestauranteService {
 
         String emailUsuario = usuarioDto.email();
 
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().toUpperCase().contains("ADMIN"));
+
         Avaliacao avaliacao = avRestauranteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Avaliação não encontrada"));
 
-        if (avaliacao.getUsuario() == null ||
-                !avaliacao.getUsuario().getEmail().equalsIgnoreCase(emailUsuario)) {
+        boolean isDono = avaliacao.getUsuario() != null &&
+                avaliacao.getUsuario().getEmail().equalsIgnoreCase(emailUsuario);
+
+        if (!isDono && !isAdmin) {
             throw new RuntimeException("Você não tem permissão para excluir esta avaliação.");
         }
 
+        Restaurante restaurante = avaliacao.getRestaurante();
+
         avRestauranteRepository.delete(avaliacao);
+        avRestauranteRepository.flush();
+
+        Double novaMedia = avRestauranteRepository.calcularMediaPorRestauranteId(restaurante.getId());
+        restaurante.setMediaNota(novaMedia == null ? 0.0 : novaMedia);
+
+        restauranteRepository.save(restaurante);
     }
 
     public List<AvaliacaoResponseDto> listarMinhasAvaliacoes(Long idUsuario) {

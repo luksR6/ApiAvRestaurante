@@ -3,6 +3,7 @@ package com.senac.ApiAvRestaurante.application.services;
 import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteRequestDto;
 import com.senac.ApiAvRestaurante.application.dto.restaurante.RestauranteResponseDto;
 import com.senac.ApiAvRestaurante.domain.entities.Restaurante;
+import com.senac.ApiAvRestaurante.domain.entities.Usuario;
 import com.senac.ApiAvRestaurante.domain.repository.AvRestauranteRepository;
 import com.senac.ApiAvRestaurante.domain.repository.RestauranteRepository;
 import com.senac.ApiAvRestaurante.domain.repository.UsuarioRepository;
@@ -23,6 +24,11 @@ public class RestauranteService {
 
     @Autowired
     private AvRestauranteRepository avRestauranteRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     public RestauranteResponseDto consultarPorId(Long id) {
 
@@ -30,69 +36,89 @@ public class RestauranteService {
     }
 
     public List<RestauranteResponseDto> listarPorNome(String nome) {
+        Usuario usuario = usuarioService.buscarUsuarioLogado();
 
-        List<Restaurante> lista;
+        List<Restaurante> restaurantes;
 
-        if (nome != null && !nome.isEmpty()) {
-            lista = restauranteRepository.findByNomeContainingIgnoreCase(nome);
+        if (usuario.getRole().equals("ROLE_ADMIN_GERAL")) {
+            restaurantes = restauranteRepository.findAll();
+        } else if (usuario.getRole().equals("ROLE_ADMIN_NORMAL")) {
+            restaurantes = restauranteRepository.findByAdminId(usuario.getId());
         } else {
-            lista = restauranteRepository.findAll();
+            restaurantes = restauranteRepository.findAll();
         }
 
-        return lista.stream().map(restaurante -> {
+        if (nome != null && !nome.isBlank()) {
+            restaurantes = restaurantes.stream()
+                    .filter(r -> r.getNome().toLowerCase().contains(nome.toLowerCase()))
+                    .toList();
+        }
 
-            Double media = avRestauranteRepository.calcularMediaPorRestauranteId(restaurante.getId());
-
-            if (media == null) media = 0.0;
-
-
-            return new RestauranteResponseDto(
-                    restaurante.getId(),
-                    restaurante.getNome(),
-                    media
-            );
-
-        }).collect(Collectors.toList());
+        return restaurantes.stream()
+                .map(RestauranteResponseDto::new)
+                .collect(Collectors.toList());
     }
 
     public List<RestauranteResponseDto> consultarTodos(){
         return restauranteRepository.findAll().stream().map(RestauranteResponseDto::new).collect(Collectors.toList());
     }
 
-   @Transactional
-   public RestauranteResponseDto salvarRestaurante(RestauranteRequestDto restauranteRequest) {
-       Restaurante restaurante = new Restaurante();
+    @Transactional
+    public RestauranteResponseDto salvarRestaurante(RestauranteRequestDto dto) {
 
-       restaurante.setNome(restauranteRequest.nome());
+        Usuario adminLogado = usuarioService.buscarUsuarioLogado();
 
-       Restaurante restauranteSalvo = restauranteRepository.save(restaurante);
+        Restaurante restaurante = new Restaurante();
+        restaurante.setNome(dto.nome());
+        restaurante.setAdmin(adminLogado);
 
-       return new RestauranteResponseDto(restauranteSalvo);
-   }
-
-    public RestauranteResponseDto atualizarRestaurante(Long id, RestauranteRequestDto restauranteRequestDto) {
-
-        Restaurante restaurante = restauranteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Restaurante com ID " + id + " não encontrada"));
-
-        restaurante.setNome(restauranteRequestDto.nome());
-
-        Restaurante restauranteAtualizado = restauranteRepository.save(restaurante);
-
-        return new RestauranteResponseDto(restauranteAtualizado);
+        var salvo = restauranteRepository.save(restaurante);
+        return new RestauranteResponseDto(salvo);
     }
 
 
-   public void deletarRestaurante(Long id){
+    @Transactional
+    public RestauranteResponseDto atualizarRestaurante(Long id, RestauranteRequestDto dto) {
 
-       if (!restauranteRepository.existsById(id)) {
-           throw new RuntimeException("Restaurante não encontrado");
-       }
+        Usuario adminLogado = usuarioService.buscarUsuarioLogado();
 
-       try {
-           restauranteRepository.deleteById(id);
-       } catch (Exception e) {
-           throw new RuntimeException("Não foi possível deletar");
-       }
-   }
+        Restaurante restaurante = restauranteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurante não encontrado"));
+
+        if (!restaurante.getAdmin().getId().equals(adminLogado.getId())) {
+            throw new RuntimeException("Você não tem permissão para alterar este restaurante");
+        }
+
+        restaurante.setNome(dto.nome());
+        var atualizado = restauranteRepository.save(restaurante);
+
+        return new RestauranteResponseDto(atualizado);
+    }
+
+
+    public void deletarRestaurante(Long id) {
+
+        Usuario adminLogado = usuarioService.buscarUsuarioLogado();
+
+        Restaurante restaurante = restauranteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurante não encontrado"));
+
+        if (!restaurante.getAdmin().getId().equals(adminLogado.getId())) {
+            throw new RuntimeException("Você não tem permissão para deletar este restaurante");
+        }
+
+        restauranteRepository.delete(restaurante);
+    }
+
+    public List<RestauranteResponseDto> listarRestaurantesDoAdmin() {
+        Usuario adminLogado = usuarioService.buscarUsuarioLogado();
+
+        var restaurantes = restauranteRepository.findByAdminId(adminLogado.getId());
+
+        return restaurantes.stream()
+                .map(RestauranteResponseDto::new)
+                .toList();
+    }
+
+
 }

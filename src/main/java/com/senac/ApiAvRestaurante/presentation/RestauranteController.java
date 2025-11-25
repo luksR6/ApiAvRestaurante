@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,33 +57,30 @@ public class RestauranteController {
 
     @PostMapping
     @Operation(summary = "Salvar Restaurante", description = "Metodo responsável por cadastrar e salvar restaurantes")
-    public ResponseEntity<RestauranteResponseDto> salvarRestaurante(@RequestBody RestauranteRequestDto restaurante) {
+    public ResponseEntity<?> salvarRestaurante(
+            @RequestBody RestauranteRequestDto restaurante) {
 
-        try{
-           var restauranteResponse = restauranteService.salvarRestaurante(restaurante);
-
-           return ResponseEntity.ok(restauranteResponse);
-        } catch (Exception e){
-            return ResponseEntity.badRequest().build();
+        try {
+            var response = restauranteService.salvarRestaurante(restaurante);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();    // <-- logar erro real
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar avaliação", description = "Metódo responsável por atualizar os restaurantes")
     public ResponseEntity<RestauranteResponseDto> atualizarRestaurantes(
-            @RequestBody @Valid RestauranteRequestDto restauranteRequestDto,
+            @RequestBody RestauranteRequestDto restauranteRequestDto,
             @PathVariable Long id) {
 
-
         try {
-            RestauranteResponseDto restauranteResponseDto = restauranteService.atualizarRestaurante(id, restauranteRequestDto);
-
-            return ResponseEntity.ok(restauranteResponseDto);
+            var response = restauranteService.atualizarRestaurante(id, restauranteRequestDto);
+            return ResponseEntity.ok(response);
         } catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
-
-
     }
 
     @DeleteMapping("/{id}")
@@ -91,9 +89,17 @@ public class RestauranteController {
 
         try {
             restauranteService.deletarRestaurante(id);
-            return ResponseEntity.ok(null);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @GetMapping("/me")
+    @Operation(summary = "Restaurantes Cadastrados Admin", description = "Retorna apenas os restaurantes cadastrados pelo admin")
+    public ResponseEntity<?> listar() {
+        var lista = restauranteService.listarRestaurantesDoAdmin();
+        return ResponseEntity.ok(lista);
+    }
+
 }

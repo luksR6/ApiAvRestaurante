@@ -13,6 +13,7 @@ import com.senac.ApiAvRestaurante.domain.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -103,6 +104,23 @@ public class UsuarioService {
 
         usuarioRepository.save(novoAdmin);
         return novoAdmin.toResponseDto();
+    }
+
+    public Usuario buscarUsuarioLogado() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new RuntimeException("Usuário não autenticado");
+        }
+
+        var principal = auth.getPrincipal();
+
+        if (principal instanceof UsuarioPrincipalDto dto) {
+            return usuarioRepository.findById(dto.id())
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        }
+
+        throw new RuntimeException("Tipo de usuário inválido");
     }
 
     public List<UsuarioResponseDto> consultarPaginadoFiltrado(Long take, Long page, String filtro) {

@@ -21,6 +21,10 @@ public class    Restaurante {
     private String nome;
     private Double mediaNota = 0.0;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    private Usuario admin;
+
     @OneToMany(mappedBy = "restaurante", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Avaliacao> avaliacoes = new ArrayList<>();
 
