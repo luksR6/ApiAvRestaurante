@@ -71,20 +71,24 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponseDto salvarUsario(UsuarioRequestDto usuarioRequest){
 
-        var usuario = usuarioRepository.findByCpf(usuarioRequest.cpf()).map(u -> {
-            u.setNome(usuarioRequest.nome());
-            u.setSenha(usuarioRequest.senha());
-            u.setRole(usuarioRequest.role());
-            u.setEmail(usuarioRequest.email());
-            return u;
-        })
-                .orElse(new Usuario(usuarioRequest));
+        if (usuarioRepository.findByEmail(usuarioRequest.email()).isPresent()) {
+            throw new RuntimeException("Este e-mail já está cadastrado.");
+        }
 
+        Usuario usuario = new Usuario();
+        usuario.setNome(usuarioRequest.nome());
+        usuario.setEmail(usuarioRequest.email());
+        usuario.setSenha(usuarioRequest.senha());
+
+        usuario.setRole("ROLE_USER");
+
+        if (usuario.getDataCadastro() == null) {
+            usuario.setDataCadastro(LocalDateTime.now());
+        }
 
         usuarioRepository.save(usuario);
 
         return usuario.toResponseDto();
-
     }
 
     @Transactional

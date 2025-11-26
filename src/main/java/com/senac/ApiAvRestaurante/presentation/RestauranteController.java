@@ -57,15 +57,14 @@ public class RestauranteController {
 
     @PostMapping
     @Operation(summary = "Salvar Restaurante", description = "Metodo responsável por cadastrar e salvar restaurantes")
-    public ResponseEntity<?> salvarRestaurante(
+    public ResponseEntity<RestauranteResponseDto> salvarRestaurante(
             @RequestBody RestauranteRequestDto restaurante) {
 
         try {
-            var response = restauranteService.salvarRestaurante(restaurante);
+            RestauranteResponseDto response = restauranteService.salvarRestaurante(restaurante);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace();    // <-- logar erro real
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -97,9 +96,12 @@ public class RestauranteController {
 
     @GetMapping("/me")
     @Operation(summary = "Restaurantes Cadastrados Admin", description = "Retorna apenas os restaurantes cadastrados pelo admin")
-    public ResponseEntity<?> listar() {
-        var lista = restauranteService.listarRestaurantesDoAdmin();
-        return ResponseEntity.ok(lista);
+    public ResponseEntity<List<RestauranteResponseDto>> listar() {
+        try {
+            var lista = restauranteService.listarRestaurantesDoAdmin();
+            return ResponseEntity.ok(lista);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
-
 }

@@ -24,9 +24,12 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getRequestURI();
+        String method = request.getMethod();
+
         if (path.equals("/auth/login")
                 || path.equals("/auth/esqueciMinhaSenha")
                 || path.equals("/auth/registrarnovasenha")
+                || (path.equals("/usuarios") && method.equals("POST"))
                 || path.startsWith("/swagger-resources")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/webjars")

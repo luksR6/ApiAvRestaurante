@@ -67,12 +67,12 @@ public class AvRestauranteController {
 
     @PostMapping
     @Operation(summary = "Cadastrar avaliação", description = "Metodo responsável por cadastrar avaliações")
-    public ResponseEntity<?> cadastrarAvaliacao(@Valid @RequestBody AvaliacaoRequestDto avaliacaoDto) {
+    public ResponseEntity<AvaliacaoResponseDto> cadastrarAvaliacao(@Valid @RequestBody AvaliacaoRequestDto avaliacaoDto) {
         try {
-            var response = avRestauranteService.salvarAvaliacao(avaliacaoDto);
+            AvaliacaoResponseDto response = avRestauranteService.salvarAvaliacao(avaliacaoDto);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -101,14 +101,18 @@ public class AvRestauranteController {
     @Operation(summary = "Minhas Avaliações", description = "Retorna apenas as avaliações do usuário logado")
     public ResponseEntity<List<AvaliacaoResponseDto>> consultarMinhasAvaliacoes() {
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UsuarioPrincipalDto principal = (UsuarioPrincipalDto) auth.getPrincipal();
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            UsuarioPrincipalDto principal = (UsuarioPrincipalDto) auth.getPrincipal();
 
-        Long idUsuario = principal.id();
+            Long idUsuario = principal.id();
 
-        List<AvaliacaoResponseDto> lista = avRestauranteService.listarMinhasAvaliacoes(idUsuario);
+            List<AvaliacaoResponseDto> lista = avRestauranteService.listarMinhasAvaliacoes(idUsuario);
 
-        return ResponseEntity.ok(lista);
+            return ResponseEntity.ok(lista);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 
